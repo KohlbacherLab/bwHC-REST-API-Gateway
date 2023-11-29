@@ -18,13 +18,13 @@ trait UserManagementPermissions
 
   val CreateUserRights = AdminRights
 
+
   def ReadUserRights(id: User.Id) =
-    Authorization[UserWithRoles](user =>
-      (user.userId == id) || (user hasRole Admin) 
-    )
+    Authorization[UserWithRoles](user => user.userId == id) OR AdminRights
 
 
-  def UpdateUserRights(id: User.Id) = ReadUserRights(id)
+  def UpdateUserRights(id: User.Id) =
+    ReadUserRights(id)
 
 
   // Ensure only admin user can "directly" change the password on user update
@@ -35,7 +35,7 @@ trait UserManagementPermissions
       if (up.password.isDefined)
         CreateUserRights
       else
-        Authorization[UserWithRoles](_ => false) 
+        Authorization[UserWithRoles](_ => true) 
     )
 
 
