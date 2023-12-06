@@ -1,9 +1,8 @@
 package de.bwhc.catalogs.api
 
 
-
+import java.time.Year
 import scala.util.Try
-
 import scala.concurrent.{
   Future,
   ExecutionContext
@@ -143,41 +142,53 @@ extends BaseController
           }
 
 
-          case "icd-o-3-t" => Try {
-                                pattern.fold(icdO3.topographyCodings())(icdO3.topographyMatches(_))
-                              }
-                              .map(SearchSet(_))
-                              .map(Json.toJson(_))
+          case "icd-o-3-t" =>
+            Try {
+              pattern.fold(icdO3.topographyCodings())(icdO3.topographyMatches(_))
+            }
+            .map(SearchSet(_))
+            .map(Json.toJson(_))
 
-          case "icd-o-3-m" => Try {
-                                pattern.fold(icdO3.morphologyCodings())(icdO3.morphologyMatches(_))
-                              }
-                              .map(SearchSet(_))
-                              .map(Json.toJson(_))
+          case "icd-o-3-m" =>
+            Try {
+              pattern.fold(icdO3.morphologyCodings())(icdO3.morphologyMatches(_))
+            }
+            .map(SearchSet(_))
+            .map(Json.toJson(_))
 
-          case "hgnc"      => Try {
-                                pattern.fold(hgnc.genes)(hgnc.genesMatchingName(_))
-                              }
-                              .map(SearchSet(_))
-                              .map(Json.toJson(_))
+          case "hgnc" =>
+            Try {
+              pattern.fold(hgnc.genes)(hgnc.genesMatchingName(_))
+            }
+            .map(SearchSet(_))
+            .map(Json.toJson(_))
 
-          case "atc"       => Try {
-                                version match {
-                                  case Some(v) =>
-                                    pattern.map(medications.findMatching(_,v)).getOrElse(medications.entries(v))
+          case "atc" =>
+            Try {
+              version match {
+                case Some(v) =>
+                  pattern
+                    .map(medications.findMatching(_,version))
+                    .getOrElse(medications.entries(v))
 
-                                  // If no version is specified, concatenate all available ATC versions,
-                                  // so that users can selected medications or med. classes whose coding
-                                  // has changed accross ATC versions 
-                                  case None =>
-                                    medications.availableVersions
-                                      .flatMap(
-                                        v => pattern.map(medications.findMatching(_,v)).getOrElse(medications.entries(v))
-                                      )
-                                }
-                              }
-                              .map(SearchSet(_))
-                              .map(Json.toJson(_))
+                // If no version is specified, concatenate all available ATC versions,
+                // so that users can selected medications or med. classes whose coding
+                // has changed accross ATC versions 
+                case None =>
+                  medications
+                    .availableVersions
+                    .sorted(Ordering.by(Year.parse).reverse)
+                    .flatMap(
+                      v =>
+                        pattern
+                          .map(medications.findMatching(_,Some(v)))
+                          .getOrElse(medications.entries(v))
+                    )
+                    .distinctBy(_.code)
+              }
+            }
+            .map(SearchSet(_))
+            .map(Json.toJson(_))
 
 
           case _           => Try { throw new IllegalArgumentException(s"Unknown Coding $system") }
