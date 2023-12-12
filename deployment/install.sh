@@ -25,7 +25,7 @@ BWHC_ZIP="$BWHC_APP_DIR.zip"
 FILES=(
   "config"
   "production.conf"
-  "bwhc-backend-service"
+#  "bwhc-backend-service"
   "bwhcConnectorConfig.xml"
   "logback.xml"
 )
@@ -38,6 +38,8 @@ for FILE in "${FILES[@]}"; do
     cp $FILE "$TARGET_DIR/"
   fi
 done
+
+cp bwhc-backend-service "$TARGET_DIR/"
 
 
 cd "$TARGET_DIR"

@@ -184,7 +184,8 @@ extends BaseController
                           .map(medications.findMatching(_,Some(v)))
                           .getOrElse(medications.entries(v))
                     )
-                    .distinctBy(_.code)
+                    .distinctBy(_.name)
+//                    .distinctBy(_.code)
               }
             }
             .map(SearchSet(_))
