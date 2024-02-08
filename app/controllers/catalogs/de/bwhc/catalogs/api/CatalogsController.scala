@@ -185,7 +185,6 @@ extends BaseController
                           .getOrElse(medications.entries(v))
                     )
                     .distinctBy(_.name)
-//                    .distinctBy(_.code)
               }
             }
             .map(SearchSet(_))
